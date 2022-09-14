@@ -1,0 +1,13 @@
+log-path: Logs
+
+https: {port: "443", host: "127.0.0.1"}
+
+mysql:
+  - root:123456@(10.1.57.39:3308)/test?charset=utf8
+  - root:123456@(10.1.57.39:3306)/test?charset=utf8
+  - root:123456@(10.1.57.39:3306)/test?charset=utf8
+
+mqtt:
+ host: 127.0.0.1:5672
+ username: rbmq
+ password: rbmq

@@ -1,10 +1,10 @@
 package main
 
 import (
-	"micro-gin/global"
+	"micro-gin/bootstrap"
 )
 
 func main() {
 
-	global.Router.Run()
+	bootstrap.Router.Run()
 }
