@@ -1,6 +1,10 @@
 package main
 
 import (
-	_ "github.com/gin-gonic/gin"
-	_ "google.golang.org/grpc"
+	"micro-gin/global"
 )
+
+func main() {
+
+	global.Router.Run()
+}
