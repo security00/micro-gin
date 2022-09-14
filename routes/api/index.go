@@ -9,3 +9,4 @@ func Routers(e *gin.Engine) {
 	c := new(Controller.IndexController)
 	e.GET("/index", c.Index)
 }
+git
