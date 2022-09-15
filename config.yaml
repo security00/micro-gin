@@ -1,0 +1,5 @@
+app:
+  env: local
+  port: 8080
+  app_name: micro-gin
+  app_url: http://localhost
