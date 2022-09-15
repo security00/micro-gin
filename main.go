@@ -1,20 +1,13 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
-	"micro-gin/bootstrap"
-	"micro-gin/global"
-	"net/http"
+	"fmt"
+	_ "micro-gin/bootstrap"
 )
 
 func main() {
 
-	//bootstrap.Router.Run()
-	bootstrap.InitializeConfig()
+	fmt.Println("aaaaaaaa")
+	fmt.Println("aaaaaaaa")
 
-	r := gin.Default()
-	r.GET("/ping", func(context *gin.Context) {
-		context.String(http.StatusOK, "pong")
-	})
-	r.Run(":" + global.App.Config.App.PORT)
 }
