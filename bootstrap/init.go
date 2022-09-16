@@ -2,7 +2,7 @@ package bootstrap
 
 import "micro-gin/global"
 
-func init() {
+func InitializeAll() {
 	// 初始化配置
 	InitializeConfig()
 

@@ -1,9 +1,7 @@
 package main
 
-import (
-	_ "micro-gin/bootstrap"
-)
+import "micro-gin/bootstrap"
 
 func main() {
-
+	bootstrap.InitializeAll()
 }
