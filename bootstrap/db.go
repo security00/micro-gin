@@ -1,7 +1,6 @@
 package bootstrap
 
 import (
-	"github.com/jassue/jassue-gin/app/models"
 	"go.uber.org/zap"
 	"gopkg.in/natefinch/lumberjack.v2"
 	"gorm.io/driver/mysql"
@@ -10,6 +9,7 @@ import (
 	"gorm.io/plugin/dbresolver"
 	"io"
 	"log"
+	"micro-gin/app/models"
 	"micro-gin/global"
 	"os"
 	"strconv"

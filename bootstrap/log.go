@@ -1,11 +1,11 @@
 package bootstrap
 
 import (
-	"github.com/jassue/jassue-gin/utils"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
 	"micro-gin/global"
+	"micro-gin/utils"
 	"os"
 	"time"
 )

@@ -1,11 +1,21 @@
-package api
+package routes
 
 import (
 	"github.com/gin-gonic/gin"
-	Controller "micro-gin/app/controllers"
+	"micro-gin/app/controllers/app"
+	"micro-gin/app/controllers/common"
+	"micro-gin/app/middleware"
+	"micro-gin/app/services"
 )
 
-func Routers(e *gin.Engine) {
-	c := new(Controller.IndexController)
-	e.GET("/index", c.Index)
+func SetApiGroupRoutes(router *gin.RouterGroup) {
+	router.POST("/auth/register", app.Register)
+	router.POST("/auth/login", app.Login)
+
+	authRouter := router.Group("").Use(middleware.JWTAuth(services.AppGuardName))
+	{
+		authRouter.POST("/auth/info", app.Info)
+		authRouter.POST("/auth/logout", app.Logout)
+		authRouter.POST("/image_upload", common.ImageUpload)
+	}
 }

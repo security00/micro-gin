@@ -1,17 +1,17 @@
 package bootstrap
 
 import (
-    "context"
-    "github.com/gin-gonic/gin"
-    "github.com/jassue/jassue-gin/routes"
-    "log"
-    "micro-gin/app/middleware"
-    "micro-gin/global"
-    "net/http"
-    "os"
-    "os/signal"
-    "syscall"
-    "time"
+	"context"
+	"github.com/gin-gonic/gin"
+	"log"
+	"micro-gin/app/middleware"
+	"micro-gin/global"
+	routes "micro-gin/routes/api"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 func setupRouter() *gin.Engine {
