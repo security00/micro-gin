@@ -15,19 +15,45 @@ log:
   max_age: 28
   compress: true
 
-database:
-  driver: 'mysql'
-  host: '127.0.0.1'
-  port: 3308
-  database: 'test'
-  username: 'root'
-  password: '123456'
-  charset: 'utf8mb4'
-  max_idle_conns: 10
-  max_open_conns: 100
-  log_mode: 'info'
-  enable_file_log_writer: true
-  log_filename: 'sql.log'
+databases:
+  master:
+    driver: 'mysql'
+    host: '127.0.0.1'
+    port: 3308
+    database: 'test'
+    username: 'root'
+    password: '123456'
+    charset: 'utf8mb4'
+    max_idle_conns: 10
+    max_open_conns: 100
+    log_mode: 'info'
+    enable_file_log_writer: true
+    log_filename: 'sql.log'
+  slaves:
+    - driver: 'mysql'
+      host: '10.1.53.247'
+      port: 3306
+      database: 'test'
+      username: 'root'
+      password: '123456'
+      charset: 'utf8mb4'
+      max_idle_conns: 10
+      max_open_conns: 100
+      log_mode: 'info'
+      enable_file_log_writer: true
+      log_filename: 'sql.log'
+    - driver: 'mysql'
+      host: '10.1.53.247'
+      port: 3306
+      database: 'test'
+      username: 'root'
+      password: '123456'
+      charset: 'utf8mb4'
+      max_idle_conns: 10
+      max_open_conns: 100
+      log_mode: 'info'
+      enable_file_log_writer: true
+      log_filename: 'sql.log'
 
 jwt:
   secret: '3Bde3BGEbYqtqyEUzW3ry8jKFcaPH17fRmTmqE7MDr05Lwj95uruRKrrkb44TJ4s'
