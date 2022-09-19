@@ -31,8 +31,7 @@ type Table struct {
 var (
 	db        *gorm.DB
 	dbNames   = "test"
-	modelPath = "./utils/reverse/result/models/"
-	jsonPath  = "./utils/reverse/result/jsons/"
+	modelPath = "./utils/reverse/models/"
 	wg        = sync.WaitGroup{}
 )
 
@@ -66,10 +65,9 @@ func Generate(dbNames string) {
 	tables := getTables(dbNames) //生成所有表信息
 
 	for _, table := range tables {
-		wg.Add(2)
+		wg.Add(1)
 		fields := getFields(table.Name)
 		generateModel(table, fields)
-		generateJSON(table, fields)
 	}
 	wg.Wait()
 }
@@ -100,10 +98,20 @@ func getFields(tableName string) []Field {
 func generateModel(table Table, fields []Field) {
 	defer wg.Done()
 	content := "package models\n\n"
+
+	for _, field := range fields {
+		fieldType := getFiledType(field)
+		if fieldType == "time.Time" {
+			content += `import "time"` + "\n\n"
+			break
+		}
+	}
+
 	//表注释
 	if len(table.Comment) > 0 {
 		content += "// " + table.Comment + "\n"
 	}
+
 	content += "type " + generator.CamelCase(table.Name) + " struct {\n"
 	//生成字段
 	for _, field := range fields {
@@ -147,79 +155,37 @@ func generateModel(table Table, fields []Field) {
 
 // 获取字段类型
 func getFiledType(field Field) string {
-	typeArr := strings.Split(field.Type, "(")
-	typeArr1 := strings.Split(field.Type, ")")
-
-	switch typeArr[0] {
-	case "int":
-		if len(typeArr1) > 1 && typeArr1[1] == " unsigned" {
-			return "*uint32"
-		} else {
-			return "*int32"
-		}
-	case "integer":
-		if len(typeArr1) > 1 && typeArr1[1] == " unsigned" {
-			return "*uint32"
-		} else {
-			return "*int32"
-		}
-	case "mediumint":
-		if len(typeArr1) > 1 && typeArr1[1] == " unsigned" {
-			return "*uint32"
-		} else {
-			return "*int32"
-		}
-	case "bit":
-		if len(typeArr1) > 1 && typeArr1[1] == " unsigned" {
-			return "*uint32"
-		} else {
-			return "*int32"
-		}
-	case "year":
-		if len(typeArr1) > 1 && typeArr1[1] == " unsigned" {
-			return "*uint32"
-		} else {
-			return "*int32"
-		}
-	case "smallint":
-		if len(typeArr1) > 1 && typeArr1[1] == " unsigned" {
-			return "*uint16"
-		} else {
-			return "*int16"
-		}
-	case "tinyint":
-		if len(typeArr1) > 1 && typeArr1[1] == " unsigned" {
-			return "*uint8"
-		} else {
-			return "*int8"
-		}
-	case "bigint":
-		if len(typeArr1) > 1 && typeArr1[1] == " unsigned" {
-			return "*uint64"
-		} else {
-			return "*int64"
-		}
-	case "decimal":
-		return "*float64"
-	case "double":
-		return "*float32"
-	case "float":
-		return "*float32"
-	case "real":
-		return "*float32"
-	case "numeric":
-		return "*float32"
-	case "timestamp":
-		return "*time.Time"
-	case "datetime":
-		return "*jsontime.JsonTime"
-	case "time":
-		return "*time.Time"
-	case "date":
-		return "*time.Time"
-	default:
-		return "*string"
+	var fieldTypeMap map[string]string = map[string]string{
+		"int":       "int32",
+		"integer":   "int32",
+		"mediumint": "int32",
+		"bit":       "int32",
+		"year":      "int32",
+		"smallint":  "uint16",
+		"tinyint":   "uint8",
+		"bigint":    "uint64",
+		"decimal":   "float64",
+		"double":    "float32",
+		"float":     "float32",
+		"real":      "float32",
+		"numeric":   "float32",
+		"timestamp": "time.Time",
+		"datetime":  "time.Time",
+		"time":      "time.Time",
+		"date":      "time.Time",
 	}
+	f := field.Type
+	if strings.Contains(field.Type, "(") {
+		f = f[:strings.Index(f, "(")-1]
+	}
+
+	if strings.Contains(field.Type, " unsigned") {
+		f = strings.Replace(field.Field, " unsigned", "", 1)
+	}
+	if v, ok := fieldTypeMap[f]; ok {
+		return v
+	}
+	return "string"
 }
 
 // 获取字段json描述
@@ -237,16 +203,20 @@ func Lcfirst(str string) string {
 
 // 获取字段gorm描述
 func getFieldGorm(field Field) string {
-	fieldContext := `gorm:"column:` + field.Field
+	fieldContext := `json:"` + Lcfirst(generator.CamelCase(field.Field)) + `"`
+
+	fieldContext = fieldContext + ` gorm:"column:` + field.Field
+
+	fieldContext = fieldContext + ";" + field.Type
 
 	if field.Key == "PRI" {
-		fieldContext = fieldContext + `;primaryKey`
+		fieldContext = fieldContext + `;PRI`
 	}
 	if field.Key == "UNI" {
 		fieldContext = fieldContext + `;unique`
 	}
 	if field.Extra == "auto_increment" {
-		fieldContext = fieldContext + `;autoIncrement`
+		fieldContext = fieldContext + `;AUTO_INCREMENT`
 	}
 	if field.Null == "NO" {
 		fieldContext = fieldContext + `;not null`
@@ -271,43 +241,4 @@ func checkFileIsExist(filename string) bool {
 		exist = false
 	}
 	return exist
-}
-
-// 生成JSON
-func generateJSON(table Table, fields []Field) {
-	defer wg.Done()
-	content := "package reply\n\n"
-
-	content += "type " + generator.CamelCase(table.Name) + " struct {\n"
-	//生成字段
-	for _, field := range fields {
-		fieldName := generator.CamelCase(field.Field)
-		fieldJson := getFieldJson(field)
-		fieldType := getFiledType(field)
-		content += "	" + fieldName + " " + fieldType + " `" + fieldJson + "` " + "\n"
-	}
-	content += "}\n"
-
-	var f *os.File
-	var err error
-	filename := jsonPath + table.Name + ".go"
-	if checkFileIsExist(filename) {
-		fmt.Println(generator.CamelCase(table.Name) + " 已存在，需删除才能重新生成...")
-		f, err = os.OpenFile(filename, os.O_WRONLY|os.O_TRUNC, 0666) //打开文件
-		if err != nil {
-			panic(err)
-		}
-	}
-	f, err = os.Create(filename)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-	_, err = io.WriteString(f, content)
-	if err != nil {
-		panic(err)
-	} else {
-		fmt.Println(table.Name + ".go 已生成...")
-	}
-
 }
