@@ -14,7 +14,6 @@ func Register(c *gin.Context) {
 		response.ValidateFail(c, request.GetErrorMsg(form, err))
 		return
 	}
-
 	if err, user := services.UserService.Register(form); err != nil {
 		response.BusinessFail(c, err.Error())
 	} else {
@@ -26,7 +25,19 @@ func Register(c *gin.Context) {
 		response.Success(c, tokenData)
 	}
 }
+func TestGenStruct(c *gin.Context) {
+	var form request.AddTestGenStruct
+	if err := c.ShouldBindJSON(&form); err != nil {
+		response.ValidateFail(c, request.GetErrorMsg(form, err))
+		return
+	}
+	if err, _ := services.TestGenStruct.Register(form); err != nil {
+		response.BusinessFail(c, err.Error())
+	} else {
 
+		response.Success(c, "保存成功")
+	}
+}
 func Login(c *gin.Context) {
 	var form request.Login
 	if err := c.ShouldBindJSON(&form); err != nil {

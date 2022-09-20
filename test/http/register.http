@@ -1,0 +1,18 @@
+POST http://127.0.0.1:8888/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "xiangqiling",
+  "mobile": "13813891381",
+  "Password": "123456"
+}
+
+###
+POST http://127.0.0.1:8888/api/auth/test_gen_struct
+Content-Type: application/json
+
+{
+  "name": "x",
+  "mobile": "13813891306",
+  "Password": "123456"
+}

@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"micro-gin/app/common/request"
 	"micro-gin/app/models"
 	"micro-gin/global"
@@ -37,6 +38,7 @@ func (userService *userService) Login(params request.Login) (err error, user *mo
 
 // GetUserInfo 获取用户信息
 func (userService *userService) GetUserInfo(id string) (err error, user models.User) {
+	fmt.Println("----------")
 	intId, err := strconv.Atoi(id)
 	err = global.App.DB.First(&user, intId).Error
 	if err != nil {

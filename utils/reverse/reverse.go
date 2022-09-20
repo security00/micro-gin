@@ -97,16 +97,22 @@ func getFields(tableName string) []Field {
 // 生成Model
 func generateModel(table Table, fields []Field) {
 	defer wg.Done()
+	impo := make(map[string]string)
 	content := "package models\n\n"
-
 	for _, field := range fields {
 		fieldType := getFiledType(field)
-		if fieldType == "time.Time" {
-			content += `import "time"` + "\n\n"
-			break
+		if field.Field != "created_at" && field.Field != "updated_at" && fieldType == "time.Time" {
+			impo["nullTime"] = `import "github.com/go-sql-driver/mysql"` + "\n\n"
+		} else {
+			if fieldType == "time.Time" {
+				impo["time"] = `import "time"` + "\n\n"
+			}
 		}
 	}
 
+	for _, im := range impo {
+		content += im
+	}
 	//表注释
 	if len(table.Comment) > 0 {
 		content += "// " + table.Comment + "\n"
@@ -119,6 +125,9 @@ func generateModel(table Table, fields []Field) {
 		//fieldJson := getFieldJson(field)
 		fieldGorm := getFieldGorm(field)
 		fieldType := getFiledType(field)
+		if field.Field != "created_at" && field.Field != "updated_at" && fieldType == "time.Time" {
+			fieldType = "mysql.NullTime"
+		}
 		fieldComment := getFieldComment(field)
 		content += "	" + fieldName + " " + fieldType + " `" + fieldGorm + "` " + fieldComment + "\n"
 	}
@@ -180,7 +189,7 @@ func getFiledType(field Field) string {
 	}
 
 	if strings.Contains(field.Type, " unsigned") {
-		f = strings.Replace(field.Field, " unsigned", "", 1)
+		f = strings.Replace(field.Type, " unsigned", "", 1)
 	}
 	if v, ok := fieldTypeMap[f]; ok {
 		return v
