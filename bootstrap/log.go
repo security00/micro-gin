@@ -94,3 +94,7 @@ func getLogWriter() zapcore.WriteSyncer {
 
 	return zapcore.AddSync(file)
 }
+
+func GetLogWriter() zapcore.WriteSyncer {
+	return getLogWriter()
+}
