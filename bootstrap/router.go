@@ -21,7 +21,7 @@ func setupRouter() *gin.Engine {
 	router := gin.New()
 
 	//router.Use(gin.Logger(), middleware.CustomRecovery())
-	router.Use(gin.LoggerWithWriter(GetLogWriter(), ""), middleware.CustomRecovery())
+	router.Use(middleware.RecordLog(), middleware.CustomRecovery())
 
 	// 跨域处理
 	//router.Use(middleware.Cors())

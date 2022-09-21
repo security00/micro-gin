@@ -12,7 +12,7 @@ POST http://127.0.0.1:8888/api/auth/test_gen_struct
 Content-Type: application/json
 
 {
-  "name": "x",
+  "name": "x2",
   "mobile": "13813891306",
   "Password": "123456"
 }
