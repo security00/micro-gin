@@ -38,6 +38,7 @@ func TestGenStruct(c *gin.Context) {
 		response.Success(c, "保存成功")
 	}
 }
+
 func Login(c *gin.Context) {
 	var form request.Login
 	if err := c.ShouldBindJSON(&form); err != nil {

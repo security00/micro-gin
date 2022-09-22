@@ -31,8 +31,8 @@ databases:
     log_filename: 'sql.log'
   slaves:
     - driver: 'mysql'
-      host: '10.1.52.4'
-      port: 3306
+      host: '127.0.0.1'
+      port: 3308
       database: 'test'
       username: 'root'
       password: '123456'
@@ -43,8 +43,8 @@ databases:
       enable_file_log_writer: true
       log_filename: 'sql.log'
     - driver: 'mysql'
-      host: '10.1.52.4'
-      port: 3306
+      host: '127.0.0.1'
+      port: 3308
       database: 'test'
       username: 'root'
       password: '123456'
@@ -87,3 +87,19 @@ storage:
       secret_key: 'secret_key'
       is_ssl: true
       is_private: false
+
+kong:
+  protocol: 'http'
+  host: '127.0.0.1'
+  port: '8001'
+  upstreams_path: '/upstreams'
+  targets_path: '/targets'
+  services_path: '/services'
+  routes_path: '/routes'
+
+micro_serv:
+  protocol: 'http'
+  host:
+    - '10.1.48.21'
+    - '10.1.56.75'
+  port: '8888'

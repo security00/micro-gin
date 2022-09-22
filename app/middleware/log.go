@@ -48,6 +48,7 @@ func RecordLog() gin.HandlerFunc {
 			if param.Latency > time.Minute {
 				param.Latency = param.Latency.Truncate(time.Second)
 			}
+
 			return fmt.Sprintf("%v |%s %3d %s| %13v | %15s |%s %-7s %s %#v\n request: %s \n errors:%s",
 				statusColor, param.StatusCode, resetColor,
 				param.Latency,
