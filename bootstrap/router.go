@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 )
@@ -38,18 +37,13 @@ func setupRouter() *gin.Engine {
 	// 注册 api 分组路由
 	apiGroup := router.Group("/api")
 	routes.SetApiGroupRoutes(apiGroup)
-	for _, v := range router.Routes() {
-		pos := strings.Split(v.Path, "/")
-		if !strings.Contains(v.Path, "*") && len(pos) > 1 {
-			//fmt.Println(strings.ReplaceAll(v.Path[1:], "/", "_"))
-			//TODO 注册到kong网关
-		}
-	}
 	return router
 }
 
 func RunServer() {
 	r := setupRouter()
+
+	RegistorToKong(r)
 
 	srv := &http.Server{
 		Addr:    ":" + global.App.Config.App.Port,

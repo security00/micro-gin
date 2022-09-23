@@ -52,14 +52,14 @@ func HttpDo(url, method string, params, headers map[string]string, data []byte) 
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
 	result := make(map[string]interface{}, 2)
 	result["code"] = resp.StatusCode
 	bodyData := make(map[string]interface{}, 0)
 	err = json.Unmarshal(body, &bodyData)
 	result["data"] = bodyData
-	if err != nil {
-		return nil, err
-	}
 
 	return result, nil
 }
