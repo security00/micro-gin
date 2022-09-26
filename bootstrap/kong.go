@@ -151,14 +151,15 @@ func RegistorToKong(r *gin.Engine) {
 		panic("获取网关服务失败")
 	}
 	for _, serv := range services {
-
 		routers, err := k.GetRoutersOfServ(serv.Id)
 		if err != nil {
 			panic("获取网关路由失败")
 		}
 		for _, router := range routers {
+			k.DelRouter(serv.Id, router.Id)
 			fmt.Println(router.Id)
 		}
+		k.DelService(serv.Id)
 	}
 	upstreams, err := k.GetAllUpstreams()
 	if err != nil {
@@ -196,8 +197,7 @@ func RegistorToKong(r *gin.Engine) {
 	}
 
 	for _, v := range r.Routes() {
-		pos := strings.Split(v.Path, "/")
-		if !strings.Contains(v.Path, "*") && len(pos) > 2 {
+		if strings.Contains(v.Path, "/api") {
 			servicePath := v.Path
 			routerPath := strings.ReplaceAll(v.Path[1:], "/", "_")
 			serviceName := routerPath + "_service"
@@ -208,9 +208,8 @@ func RegistorToKong(r *gin.Engine) {
 				"host":     upstreamName,
 				"path":     servicePath,
 				"protocol": "http",
-				"port":     "888",
 			}
-			s, err := k.saveServ(serv)
+			s, err := k.AddServ(serv)
 			if err != nil {
 				panic("add service fail")
 			}
@@ -233,15 +232,6 @@ func (k *KongKong) url() string {
 	return k.Kong.Protocol + "://" + k.Kong.Host + ":" + k.Kong.Port
 }
 
-func (k *KongKong) saveTarget(uid string, target map[string]string) (t Targets, err error) {
-	if t, err = k.AddTarget(uid, target); err == nil {
-		return t, err
-	}
-	if t, err = k.PatchTarget(uid, target); err == nil {
-		return t, err
-	}
-	return t, err
-}
 func (k *KongKong) AddTarget(uid string, target map[string]string) (t Targets, err error) {
 	url := k.url() + k.Kong.UpstreamsPath + "/" + uid + k.Kong.TargetsPath
 	data, _ := json.Marshal(target)
@@ -260,23 +250,17 @@ func (k *KongKong) AddTarget(uid string, target map[string]string) (t Targets, e
 	}
 	return t, errors.New(strconv.Itoa(resultStruct.Code))
 }
-func (k *KongKong) PatchTarget(uid string, target map[string]string) (t Targets, err error) {
-	url := k.url() + k.Kong.UpstreamsPath + "/" + uid + k.Kong.TargetsPath
-	data, _ := json.Marshal(target)
-	req, err := utils.HttpDo(url, "PATCH", nil, nil, data)
-	if err != nil {
-		return t, errors.New("000")
-	}
-	type kongRes struct {
-		Code int
-		Data Targets
-	}
-	resultStruct := new(kongRes)
-	utils.TwoJson(resultStruct, req)
-	if resultStruct.Code == 200 || resultStruct.Code == 201 {
-		return resultStruct.Data, nil
-	}
-	return t, errors.New(strconv.Itoa(resultStruct.Code))
+
+func (k *KongKong) DelRouter(idServ, idRouter string) error {
+	url := k.url() + k.Kong.ServicesPath + "/" + idServ + k.Kong.RoutesPath + "/" + idRouter
+	_, err := utils.HttpDo(url, "DELETE", nil, nil, nil)
+	return err
+}
+
+func (k *KongKong) DelService(id string) error {
+	url := k.url() + k.Kong.ServicesPath + "/" + id
+	_, err := utils.HttpDo(url, "DELETE", nil, nil, nil)
+	return err
 }
 
 func (k *KongKong) DelUpstream(upstreamName string) error {
@@ -285,15 +269,6 @@ func (k *KongKong) DelUpstream(upstreamName string) error {
 	return err
 }
 
-func (k *KongKong) saveUpstream(upstream map[string]interface{}) (s Upstream, err error) {
-	if s, err = k.AddUpstream(upstream); err == nil {
-		return s, err
-	}
-	if s, err = k.PatchUpstream(upstream); err == nil {
-		return s, err
-	}
-	return s, err
-}
 func (k *KongKong) AddUpstream(upstreamName map[string]interface{}) (u Upstream, err error) {
 	url := k.url() + k.Kong.UpstreamsPath
 	data, _ := json.Marshal(upstreamName)
@@ -312,34 +287,7 @@ func (k *KongKong) AddUpstream(upstreamName map[string]interface{}) (u Upstream,
 	}
 	return u, errors.New(strconv.Itoa(resultStruct.Code))
 }
-func (k *KongKong) PatchUpstream(upstreamName map[string]interface{}) (u Upstream, err error) {
-	url := k.url() + k.Kong.UpstreamsPath
-	data, _ := json.Marshal(upstreamName)
-	req, err := utils.HttpDo(url, "PATCH", nil, nil, data)
-	if err != nil {
-		return u, errors.New("000")
-	}
-	type kongRes struct {
-		Code int
-		Data Upstream
-	}
-	resultStruct := new(kongRes)
-	utils.TwoJson(resultStruct, req)
-	if resultStruct.Code == 405 {
-		return resultStruct.Data, nil
-	}
-	return u, errors.New(strconv.Itoa(resultStruct.Code))
-}
 
-func (k *KongKong) saveServ(service map[string]interface{}) (s Service, err error) {
-	if s, err = k.AddServ(service); err == nil {
-		return s, err
-	}
-	if s, err = k.PatchServ(service); err == nil {
-		return s, err
-	}
-	return s, err
-}
 func (k *KongKong) GetServ(serviceName string) (s Service, err error) {
 	url := k.url() + k.Kong.ServicesPath + "/" + serviceName
 	req, err := utils.HttpDo(url, "GET", nil, nil, nil)
@@ -376,34 +324,6 @@ func (k *KongKong) AddServ(service map[string]interface{}) (s Service, err error
 	}
 	return s, errors.New(strconv.Itoa(resultStruct.Code))
 }
-func (k *KongKong) saveRouter(router map[string]interface{}) (s Router, err error) {
-	if s, err = k.AddRouter(router); err == nil {
-		return s, err
-	}
-	if s, err = k.PatchRouter(router); err == nil {
-		return s, err
-	}
-	return s, err
-}
-
-func (k *KongKong) PatchServ(service map[string]interface{}) (s Service, err error) {
-	url := k.url() + k.Kong.ServicesPath
-	data, _ := json.Marshal(service)
-	req, err := utils.HttpDo(url, "PATCH", nil, nil, data)
-	if err != nil {
-		return s, errors.New("000")
-	}
-	type kongRes struct {
-		Code int
-		Data Service
-	}
-	resultStruct := new(kongRes)
-	utils.TwoJson(resultStruct, req)
-	if resultStruct.Code == 405 {
-		return resultStruct.Data, nil
-	}
-	return s, errors.New(strconv.Itoa(resultStruct.Code))
-}
 
 func (k *KongKong) AddRouter(router map[string]interface{}) (r Router, err error) {
 	url := k.url() + k.Kong.RoutesPath
@@ -419,25 +339,6 @@ func (k *KongKong) AddRouter(router map[string]interface{}) (r Router, err error
 	resultStruct := new(kongRes)
 	utils.TwoJson(resultStruct, req)
 	if resultStruct.Code == 200 || resultStruct.Code == 201 {
-		return resultStruct.Data, nil
-	}
-	return r, errors.New(strconv.Itoa(resultStruct.Code))
-}
-
-func (k *KongKong) PatchRouter(router map[string]interface{}) (r Router, err error) {
-	url := k.url() + k.Kong.RoutesPath
-	data, _ := json.Marshal(router)
-	req, err := utils.HttpDo(url, "PATCH", nil, nil, data)
-	if err != nil {
-		return r, errors.New("000")
-	}
-	type kongRes struct {
-		Code int
-		Data Router
-	}
-	resultStruct := new(kongRes)
-	utils.TwoJson(resultStruct, req)
-	if resultStruct.Code == 400 {
 		return resultStruct.Data, nil
 	}
 	return r, errors.New(strconv.Itoa(resultStruct.Code))
